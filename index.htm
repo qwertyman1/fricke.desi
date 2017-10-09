@@ -1,0 +1,198 @@
+ <!DOCTYPE html> 
+<html>
+    <head>
+    <title>Desirée</title>
+
+    <style>
+        body,html {
+            margin:0;
+            padding:0;
+        }
+        body {
+            background:#333;
+            color:#fff;
+            font-family: "Segoe Ui", Helvetica, Arial, sans-serif;
+        }
+        h1, h2, h3, h4, h5 {
+            color:#fff;
+            font-weight: normal;
+            text-align: center;
+        }
+    </style>
+
+    <!-- <scipt src="moment.min.js"></scipt> -->
+    
+
+    
+    </head>
+
+    <body>
+        <div>
+            <h1>Desirée is</h1>
+            <h2 id="fullAge"></h2>
+            <h3 id="months"></h3>
+            <h3 id="days"></h3>
+        </div>
+        
+        
+    </body>
+
+    <script>
+            
+                (function(){
+        
+                    //Shortcut for getting elements from DOM
+                    var el = function(str){
+                        if(str && str.length > 0){
+                            if(str[0] === "#"){
+                                return document.getElementById(str.substring(1))
+                            }
+                        }
+                        return undefined;
+                    };
+        
+                    //Date calculator and format helper
+                    var dateFormat = {
+                        years: function(from, to) { 
+                            var years = this._years(from,to);
+                            return this._formatNumber(years, " year"," years");
+                        },
+        
+                        months: function(from, to) { 
+                            var months = this._months(from,to);
+                            return this._formatNumber(months, " month"," months");
+                        },
+                        totalMonths: function(from, to) { 
+                            var months = this._totalMonths(from,to);
+                            return this._formatNumber(months, " month"," months");
+                        },
+
+                        days: function(from, to) { 
+                            var days = this._days(from,to);
+                            return this._formatNumber(days, " day"," days");
+                        },
+
+                        totalDays: function(from, to) { 
+                            var days = this._totalDays(from,to);
+                            return this._formatNumber(days, " day"," days");
+                        },
+                        
+
+                        _formatNumber: function(number, singular, plural){
+                            if(number == 0){
+                                return "";
+                            }
+        
+                            var str = "";
+                            if(number == 1) {
+                                str = singular;
+                            }
+                            else {
+                                str = plural;
+                            }
+                            return number + str;
+                        },
+        
+                        _years: function(from, to) { 
+                            var ageDifMs = to - from;
+                            var ageDate = new Date(ageDifMs); // miliseconds from epoch
+                            return Math.abs(ageDate.getUTCFullYear() - 1970)
+                        },
+        
+                        _months: function(from, to) { 
+                            var ageDifMs = to - from;
+                            var ageDate = new Date(ageDifMs); // miliseconds from epoch
+        
+                            ageDate.setUTCFullYear(1970);
+                            return Math.abs(ageDate.getUTCMonth())
+                        },
+                        _totalMonths: function(from, to) { 
+                            var years = this._years(from, to);
+                            var months = this._months(from, to);
+                            return (years * 12) + months;
+                        },
+
+                        _days: function(from, to) { 
+                            var ageDifMs = to - from;
+                            var ageDate = new Date(ageDifMs); // milliseconds from epoch
+        
+                            ageDate.setUTCFullYear(1970);
+                            ageDate.setUTCMonth(1);
+                            return Math.abs(ageDate.getUTCDate())
+                        },
+
+                        _totalDays: function(from, to) { 
+                            var ageDifMs = to - from;
+                            return Math.floor(Math.abs(ageDifMs / 1000 / 60 / 60 / 24));
+                        },
+                    };
+        
+                    var birthdayHandler = {
+                        //_unixBirthday: 1466891160, //Dessie
+                        _unixBirthday: 523843200, //Huining
+                        
+                        _birthday: function(){return new Date(this._unixBirthday*1000)},
+        
+                        _updateUi: function(from, to){
+                            var fullAge = this._getFullAge(from,to);
+                            var totalMonths = dateFormat.totalMonths(from,to);
+                            var totalDays = dateFormat.totalDays(from,to);
+                             
+                            //Update UI
+                            el("#fullAge").innerText = fullAge + " old"
+                            el("#months").innerText = "Total of " + totalMonths + " old";
+                            el("#days").innerText = "Total of " + totalDays + " old";
+                        },
+
+                        _getFullAge:function (from, to){
+                            //Get all units
+                            var items = [
+                                    dateFormat.years(from, to), 
+                                    dateFormat.months(from, to),
+                                    dateFormat.days(from, to),
+                                ];
+                            
+                            //Remove empty units
+                            var i = 0;
+                            while(items.length > 0 && i < items.length){
+        
+                                if(items[i].length == 0){
+                                    array.splice(i, 1);
+                                } else{
+                                    i++;
+                                }                        
+                            }
+        
+                            //build string
+                            var strTotal = "";
+                            if(items.length > 0)
+                            {
+                                var last = undefined;
+                                if(items.length > 1){
+                                    last = items[items.length-1];
+                                    items.splice(items.length-1, 1);
+                                }
+                                strTotal = items.join(", ");
+                                if(last){
+                                    strTotal += " and " + last;
+                                }
+                            }
+
+                            return strTotal;
+                        },
+        
+                        //Main function
+                        update: function(){
+                            var now = new Date();
+                            this._updateUi(this._birthday(), now);
+                        },
+                    };
+        
+        
+                    birthdayHandler.update();
+                    setInterval(function(){birthdayHandler.update()}, 1000);
+        
+                })();
+        
+            </script>
+</html>
