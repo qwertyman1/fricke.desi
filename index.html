@@ -224,7 +224,7 @@
                     while (items.length > 0 && i < items.length) {
 
                         if (items[i].length == 0) {
-                            array.splice(i, 1);
+                            items.splice(i, 1);
                         } else {
                             i++;
                         }
@@ -250,6 +250,11 @@
                 //Main function
                 update: function () {
                     var now = new Date();
+
+                    //Debug
+                    var msPerMinute = 60000;
+                    now = new Date(now - 4 * msPerMinute);
+
                     this._updateUi(this._birthday(), now);
                 },
             };
