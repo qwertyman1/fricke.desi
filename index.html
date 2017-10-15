@@ -61,6 +61,11 @@
                     return this._formatNumber(months, " month", " months");
                 },
                 totalMonths: function (from, to) {
+
+                    //Compare full dates
+                    from = this._truncateTime(from);
+                    to = this._truncateTime(to);
+
                     var months = this._totalMonths(from, to);
                     return this._formatNumber(months, " month", " months");
                 },
@@ -71,10 +76,29 @@
                 },
 
                 totalDays: function (from, to) {
+
+                    //Compare full dates
+                    from = this._truncateTime(from);
+                    to = this._truncateTime(to);
+
                     var days = this._totalDays(from, to);
                     return this._formatNumber(days, " day", " days");
                 },
 
+                hours: function (from, to) {
+                    var hours = this._hours(from, to);
+                    return this._formatNumber(hours, " hour", " hours");
+                },
+
+                minutes: function (from, to) {
+                    var minutes = this._minutes(from, to);
+                    return this._formatNumber(minutes, " minute", " minutes");
+                },
+
+                seconds: function (from, to) {
+                    var seconds = this._seconds(from, to);
+                    return this._formatNumber(seconds, " second", " seconds");
+                },
 
                 _formatNumber: function (number, singular, plural) {
                     if (number == 0) {
@@ -92,6 +116,7 @@
                 },
 
                 _years: function (from, to) {
+
                     var ageDifMs = to - from;
                     var ageDate = new Date(ageDifMs); // miliseconds from epoch
                     return Math.abs(ageDate.getUTCFullYear() - 1970)
@@ -105,6 +130,7 @@
                     return Math.abs(ageDate.getUTCMonth())
                 },
                 _totalMonths: function (from, to) {
+                    
                     var years = this._years(from, to);
                     var months = this._months(from, to);
                     return (years * 12) + months;
@@ -119,10 +145,49 @@
                     return Math.abs(ageDate.getUTCDate())
                 },
 
+                _hours: function (from, to) {
+                    var ageDifMs = to - from;
+                    var ageDate = new Date(ageDifMs); // milliseconds from epoch
+
+                    ageDate.setUTCFullYear(1970);
+                    ageDate.setUTCMonth(1);
+                    ageDate.setUTCDate(1);
+                    return Math.abs(ageDate.getUTCHours())
+                },
+
+                _minutes: function (from, to) {
+                    var ageDifMs = to - from;
+                    var ageDate = new Date(ageDifMs); // milliseconds from epoch
+
+                    ageDate.setUTCFullYear(1970);
+                    ageDate.setUTCMonth(1);
+                    ageDate.setUTCDate(1);
+                    ageDate.setUTCHours(1);
+                    return Math.abs(ageDate.getUTCMinutes())
+                },
+
+                _seconds: function (from, to) {
+                    var ageDifMs = to - from;
+                    var ageDate = new Date(ageDifMs); // milliseconds from epoch
+
+                    ageDate.setUTCFullYear(1970);
+                    ageDate.setUTCMonth(1);
+                    ageDate.setUTCDate(1);
+                    ageDate.setUTCHours(1);
+                    ageDate.setUTCMinutes(1);
+                    return Math.abs(ageDate.getUTCSeconds())
+                },
+
                 _totalDays: function (from, to) {
                     var ageDifMs = to - from;
                     return Math.floor(Math.abs(ageDifMs / 1000 / 60 / 60 / 24));
                 },
+
+                _truncateTime: function (dateIn) {
+                    var dateOut = new Date(dateIn.getTime());
+                    dateOut.setHours(0, 0, 0, 0);
+                    return dateOut;
+                }
             };
 
             var birthdayHandler = {
@@ -135,11 +200,12 @@
                     var fullAge = this._getFullAge(from, to);
                     var totalMonths = dateFormat.totalMonths(from, to);
                     var totalDays = dateFormat.totalDays(from, to);
-
+                    
                     //Update UI
                     el("#fullAge").innerText = fullAge + " old"
                     el("#months").innerText = "Total of " + totalMonths + " old";
                     el("#days").innerText = "Total of " + totalDays + " old";
+                    
                 },
 
                 _getFullAge: function (from, to) {
@@ -148,6 +214,9 @@
                         dateFormat.years(from, to),
                         dateFormat.months(from, to),
                         dateFormat.days(from, to),
+                        dateFormat.hours(from, to),
+                        dateFormat.minutes(from, to),
+                        dateFormat.seconds(from, to),
                     ];
 
                     //Remove empty units
@@ -195,3 +264,4 @@
 </body>
 
 </html>
+
