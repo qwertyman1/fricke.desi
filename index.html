@@ -138,7 +138,7 @@
                 readableTimespamp: function (from, now) {
                     var strReturn = "";
                     now = now || new Date();
-                    strReturn += from.toISOString().slice(0, 10) + " //// ";
+                    strReturn += from.toString() + " ///// ";
                     if (from) {
                         var diffMs = now.getTime() - from.getTime();
 
