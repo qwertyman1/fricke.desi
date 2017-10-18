@@ -138,7 +138,7 @@
                 readableTimespamp: function (from, now) {
                     var strReturn = "";
                     now = now || new Date();
-                    strReturn += from.toString() + " ///// ";
+
                     if (from) {
                         var diffMs = now.getTime() - from.getTime();
 
@@ -349,10 +349,23 @@
                 createElement: function (item) {
                     var img = this._createImage("https://drive.google.com/uc?export=view&id=" + item.id, 'rot-' + item.imageMediaMetadata.rotation, '', '');
 
+
+                    var div = $('#images');
+                    div.innerHTML += "item.imageMediaMetadata.date: " + item.imageMediaMetadata.date + "<br>";
+                    
+                    
                     var span = document.createElement("span");
                     var date = exifHelper.getDate(item.imageMediaMetadata.date);
+
+                    div.innerHTML += "date: " + date + "<br>";
+
                     var text = dateFormat.readableTimespamp(date);
+
+                    div.innerHTML += "text: " + text + "<br>";
+
                     span.innerText = text;
+
+                    
 
                     var el = document.createElement("div");
                     el.appendChild(img);
