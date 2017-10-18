@@ -7,6 +7,7 @@
         body,html {
             margin:0;
             padding:0;
+            font-size:2vw;
         }
         body {
             background:#333;
@@ -17,7 +18,39 @@
             color:#fff;
             font-weight: normal;
             text-align: center;
+            font-size:3vw;
         }
+
+        
+        #images {
+            width:100%;
+        }
+
+        #images div {
+            margin: 0 0 2em 0;
+            width: 100%;
+        }
+
+        #images div img {
+            width: 100%;
+            margin: 0;
+            image-orientation: from-image;
+        }
+
+
+        img.rot-1 {
+            /*-webkit-transform: rotate(90deg);
+            -moz-transform: rotate(90deg);
+            -o-transform: rotate(90deg);
+            -ms-transform: rotate(90deg);
+            
+            transform-origin: center center;
+            position: relative;
+            transform: rotate(90deg);
+            height: calc(100vw-10px);
+            image-orientation: 90deg;*/
+        }
+
     </style>
 
     <!-- <scipt src="moment.min.js"></scipt> -->
@@ -27,12 +60,14 @@
     </head>
 
 <body>
-    <div>
+    <div class="birthday">
         <h1>Desirée is</h1>
         <h2 id="fullAge"></h2>
         <h3 id="months"></h3>
         <h3 id="days"></h3>
     </div>
+
+    <div id="images"></div>
 
 
     <script>
@@ -40,7 +75,7 @@
         (function () {
 
             //Shortcut for getting elements from DOM
-            var el = function (str) {
+            window.$ = function (str) {
                 if (str && str.length > 0) {
                     if (str[0] === "#") {
                         return document.getElementById(str.substring(1))
@@ -98,6 +133,41 @@
                 seconds: function (from, to) {
                     var seconds = this._seconds(from, to);
                     return this._formatNumber(seconds, " second", " seconds");
+                },
+
+                readableTimespamp: function (from, now) {
+                    var strReturn = "";
+                    now = now || new Date();
+
+                    if (from) {
+                        var diffMs = now.getTime() - from.getTime();
+
+                        if (diffMs < 0) {
+                            strReturn = "In the future";
+                        }
+                        else if (diffMs > 1000 * 60 * 60 * 24 * 7) { // more than a week 
+                            strReturn = from.toISOString().slice(0, 10);
+                        }
+                        else {
+                            if (diffMs < 1000 * 60) { //less than minute 
+                                strReturn = this.seconds(from, now);
+                            }
+                            else if (diffMs < 1000 * 60 * 60) { //less than hour 
+                                strReturn = this.minutes(from, now);
+                            }
+                            else if (diffMs < 1000 * 60 * 60 * 24) { //less than day
+                                strReturn = this.hours(from, now);
+                            }
+                            else { //less than week
+                                strReturn = this.days(from, now);
+                            }
+
+                            strReturn += " ago";
+                        }
+                    }
+
+                    
+                    return strReturn;
                 },
 
                 _formatNumber: function (number, singular, plural) {
@@ -202,9 +272,9 @@
                     var totalDays = dateFormat.totalDays(from, to);
                     
                     //Update UI
-                    el("#fullAge").innerText = fullAge + " old"
-                    el("#months").innerText = "Total of " + totalMonths + " old";
-                    el("#days").innerText = "Total of " + totalDays + " old";
+                    $("#fullAge").innerText = fullAge + " old"
+                    $("#months").innerText = "Total of " + totalMonths + " old";
+                    $("#days").innerText = "Total of " + totalDays + " old";
                     
                 },
 
@@ -260,12 +330,108 @@
             };
 
 
+            exifHelper = {
+                getDate: function (exifDate) {
+                    if (!exifDate)
+                        return undefined;
+                    var datStr = this._replaceAt(this._replaceAt((exifDate), 4, "-"), 7, "-");
+                    return new Date(datStr);
+
+                },
+                //String helper methods
+                _replaceAt: function (str, index, replacement) {
+                    return str.substr(0, index) + replacement + str.substr(index + replacement.length);
+                },
+            }
+
+            imageCreator = {
+                //DOM helper methods
+                createElement: function (item) {
+                    var img = this._createImage("https://drive.google.com/uc?export=view&id=" + item.id, 'rot-' + item.imageMediaMetadata.rotation, '', '');
+
+                    var span = document.createElement("span");
+                    var date = exifHelper.getDate(item.imageMediaMetadata.date);
+                    var text = dateFormat.readableTimespamp(date);
+                    span.innerText = text;
+
+                    var el = document.createElement("div");
+                    el.appendChild(img);
+                    el.appendChild(span);
+                    return el;
+                },
+
+
+                _createImage: function (src, cssClass, alt, title) {
+                    var img = document.createElement('img') || new Image();
+                    img.src = src;
+                    if (alt != null) img.alt = alt;
+                    if (title != null) img.title = title;
+                    if (cssClass != null) img.className = cssClass;
+                    return img;
+                },
+            };
+
+
+
+            imageFetcher = {
+
+                _url: "https://www.googleapis.com/drive/v2/files?q='0B-hMc6XvBKsXanc3Z1UzTUJYZkE'+in+parents+and+mimeType='image/jpeg'&orderBy=createdDate+desc&key=AIzaSyAM9XqhZGri07KQXdtioOGIsHzc2guR0V4",
+
+                _status: function (response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        return Promise.resolve(response)
+                    } else {
+                        return Promise.reject(new Error(response.statusText))
+                    }
+                },
+
+                _json: function (response) {
+                    return response.json()
+                },
+
+                _handleResponse: function (data) {
+                    //Sort by date taken desc
+                    var items = data.items;
+                    items.sort(imageFetcher._sortImageTakenDesc); //Don't use 'this' in callback
+
+                    //Add images for each item
+                    for (var i in items) {
+                        var item = items[i];
+                        var element = imageCreator.createElement(item);
+                        $("#images").appendChild(element);
+                    }
+                },
+
+                _sortImageTakenDesc: function (a, b) {
+                    var datA = exifHelper.getDate(a.imageMediaMetadata.date) || new Date("1990-01-01 00:00:00");
+                    var datB = exifHelper.getDate(b.imageMediaMetadata.date) || new Date("1990-01-01 00:00:00");
+                    return datB.getTime() - datA.getTime();
+                },
+
+
+                //Fetch helper methods
+                fetchImages: function () {
+                    fetch(this._url, { mode: 'cors' })
+                        .then(this._status)
+                        .then(this._json)
+                        .then(this._handleResponse)
+                        .catch(function (err) {
+                            console.log('Fetch Error', err);
+                        });
+                },
+
+            };
+
             birthdayHandler.update();
             setInterval(function () { birthdayHandler.update() }, 1000);
+
+            imageFetcher.fetchImages();
 
         })();
 
     </script>
+
+
 </body>
 
 </html>
