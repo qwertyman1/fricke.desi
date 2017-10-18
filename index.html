@@ -146,7 +146,11 @@
                             strReturn += "In the future";
                         }
                         else if (diffMs > 1000 * 60 * 60 * 24 * 7) { // more than a week 
-                            strReturn += from.toISOString().slice(0, 10);
+
+                            var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
+                            var localISOTime = (new Date(from - tzoffset)).toISOString().slice(0, 10);
+
+                            strReturn += localISOTime;
                         }
                         else {
                             if (diffMs < 1000 * 60) { //less than minute 
@@ -348,24 +352,11 @@
                 //DOM helper methods
                 createElement: function (item) {
                     var img = this._createImage("https://drive.google.com/uc?export=view&id=" + item.id, 'rot-' + item.imageMediaMetadata.rotation, '', '');
-
-
-                    var div = $('#images');
-                    div.innerHTML += "item.imageMediaMetadata.date: " + item.imageMediaMetadata.date + "<br>";
-                    
                     
                     var span = document.createElement("span");
                     var date = exifHelper.getDate(item.imageMediaMetadata.date);
-
-                    div.innerHTML += "date: " + date + "<br>";
-
                     var text = dateFormat.readableTimespamp(date);
-
-                    div.innerHTML += "text: " + text + "<br>";
-
                     span.innerText = text;
-
-                    
 
                     var el = document.createElement("div");
                     el.appendChild(img);
