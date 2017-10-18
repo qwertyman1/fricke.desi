@@ -334,7 +334,7 @@
                 getDate: function (exifDate) {
                     if (!exifDate)
                         return undefined;
-                    var datStr = this._replaceAt(this._replaceAt((exifDate), 4, "-"), 7, "-");
+                    var datStr = this._replaceAt(this._replaceAt(this._replaceAt((exifDate), 4, "-"), 7, "-"), 10, "T");
                     return new Date(datStr);
 
                 },
