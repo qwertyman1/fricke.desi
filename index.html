@@ -1,6 +1,6 @@
 <!DOCTYPE html> 
 <html>
-    <head>
+<head>
     <title>Desirée</title>
 
     <style>
@@ -11,10 +11,8 @@
             font-size: 2vw;
         }
         body {
-            background: #222;
+            background: #0e0e0e;
             color: #fff;
-            /*font-family: "Segoe Ui", Helvetica, Arial, sans-serif;*/
-            /*font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;*/
             font-family: 'Work Sans', sans-serif;
         }
         h1, h2, h3, h4, h5 {
@@ -83,12 +81,16 @@
     </style>
 
     <link href="https://fonts.googleapis.com/css?family=Cormorant|Work+Sans" rel="stylesheet">
+    <script src="https://momentjs.com/downloads/moment.min.js"></script>
 
     
-    </head>
+</head>
 
 <body>
     <div class="birthday">
+
+        <input type="text" id="debugger" style="display:none;" placeholder="Enter new date (yyyy-mm-dd)" />
+
         <h1>Desirée is</h1>
         <h2><span id="fullAge"></span></h2>
         <h3><span id="months"></span><span id="days"></span></h3>
@@ -107,97 +109,108 @@
                 if (str && str.length > 0) {
                     if (str[0] === "#") {
                         return document.getElementById(str.substring(1))
+                    } else {
+                        return document.querySelector(str);
                     }
                 }
                 return undefined;
             };
 
+            window.$.qs = function () {
+                if (window.$._qs)
+                    return window.$._qs;
+                else {
+                    var arr = location.search.replace('?', '').split('&');
+                    var obj = {};
+
+                    for (var i = 0; i < arr.length; i++) {
+                        var name = arr[i].split('=')[0];
+                        var value = arr[i].split('=')[1];
+                        obj[name] = value;
+                    }
+                    window.$._qs = obj;
+                    return obj;
+                }
+            };
+
             //Date calculator and format helper
             var dateFormat = {
-                years: function (from, to) {
-                    var years = this._years(from, to);
-                    return this._formatNumber(years, " year", " years");
+                
+                totalTime: function (from, to) {
+                    
+                    var items = [];
+
+
+                    //Get all units
+                    var units = [
+                        { unit: 'years', strSingle: ' year', strMultiple: ' years' },
+                        { unit: 'months', strSingle: ' month', strMultiple: ' months' },
+                        { unit: 'days', strSingle: ' day', strMultiple: ' days' },
+                        { unit: 'hours', strSingle: ' hours', strMultiple: ' hour' },
+                        { unit: 'minutes', strSingle: ' minute', strMultiple: ' minutes' },
+                        { unit: 'seconds', strSingle: ' second', strMultiple: ' seconds' },
+                    ];
+                    
+                    for (var i in units) {
+                        var item = units[i];
+
+                        var amount = to.diff(from, item.unit);
+                        if (amount > 0) {
+                            var text = dateFormat._formatNumber(amount, item.strSingle, item.strMultiple);
+                            items.push(text);
+                            from = from.clone().add(amount, item.unit);
+                        }
+                    }
+
+                    //build string
+                    var strTotal = "";
+                    if (items.length > 0) {
+                        var last = undefined;
+                        if (items.length > 1) {
+                            last = items[items.length - 1];
+                            items.splice(items.length - 1, 1);
+                        }
+                        strTotal = items.join(", ");
+                        if (last) {
+                            strTotal += " and " + last;
+                        }
+                    }
+
+                    return strTotal;
                 },
 
-                months: function (from, to) {
-                    var months = this._months(from, to);
-                    return this._formatNumber(months, " month", " months");
-                },
                 totalMonths: function (from, to) {
 
-                    //Compare full dates
-                    from = this._truncateTime(from);
-                    to = this._truncateTime(to);
-
-                    var months = this._totalMonths(from, to);
+                    var months = to.diff(from, 'months');
                     return this._formatNumber(months, " month", " months");
                 },
-
-                days: function (from, to) {
-                    var days = this._days(from, to);
-                    return this._formatNumber(days, " day", " days");
-                },
-
                 totalDays: function (from, to) {
-
-                    //Compare full dates
-                    from = this._truncateTime(from);
-                    to = this._truncateTime(to);
-
-                    var days = this._totalDays(from, to);
+                    var days = to.diff(from, 'days');
                     return this._formatNumber(days, " day", " days");
                 },
-
-                hours: function (from, to) {
-                    var hours = this._hours(from, to);
-                    return this._formatNumber(hours, " hour", " hours");
-                },
-
-                minutes: function (from, to) {
-                    var minutes = this._minutes(from, to);
-                    return this._formatNumber(minutes, " minute", " minutes");
-                },
-
-                seconds: function (from, to) {
-                    var seconds = this._seconds(from, to);
-                    return this._formatNumber(seconds, " second", " seconds");
-                },
-
+                
                 readableTimespamp: function (from, now) {
                     var strReturn = "";
-                    now = now || new Date();
+                    now = now || new moment();
 
                     if (from) {
-                        var diffMs = now.getTime() - from.getTime();
+                        var diffMs = now.diff(from);
 
                         if (diffMs < 0) {
                             strReturn += "In the future";
                         }
                         else if (diffMs > 1000 * 60 * 60 * 24 * 7) { // more than a week 
 
-                            var date = from.getDate();
-                            var month = from.toLocaleString("en-us", { month: "long" });
-                            var year = from.getFullYear();
+                            var date = from.date();
+                            var month = from.format("MMMM");
+                            var year = from.year();
 
                             strReturn += date + " " + month;
-                            if (new Date().getFullYear() != year)
+                            if (moment().year() != year)
                                 strReturn += " " + year;
                         }
                         else {
-                            if (diffMs < 1000 * 60) { //less than minute 
-                                strReturn += this.seconds(from, now);
-                            }
-                            else if (diffMs < 1000 * 60 * 60) { //less than hour 
-                                strReturn += this.minutes(from, now);
-                            }
-                            else if (diffMs < 1000 * 60 * 60 * 24) { //less than day
-                                strReturn += this.hours(from, now);
-                            }
-                            else { //less than week
-                                strReturn += this.days(from, now);
-                            }
-
-                            strReturn += " ago";
+                            strReturn += from.fromNow();
                         }
                     }
 
@@ -220,89 +233,16 @@
                     return number + str;
                 },
 
-                _years: function (from, to) {
-
-                    var ageDifMs = to - from;
-                    var ageDate = new Date(ageDifMs); // miliseconds from epoch
-                    return Math.abs(ageDate.getUTCFullYear() - 1970)
-                },
-
-                _months: function (from, to) {
-                    var ageDifMs = to - from;
-                    var ageDate = new Date(ageDifMs); // miliseconds from epoch
-
-                    ageDate.setUTCFullYear(1970);
-                    return Math.abs(ageDate.getUTCMonth())
-                },
-                _totalMonths: function (from, to) {
-                    
-                    var years = this._years(from, to);
-                    var months = this._months(from, to);
-                    return (years * 12) + months;
-                },
-
-                _days: function (from, to) {
-                    var ageDifMs = to - from;
-                    var ageDate = new Date(ageDifMs); // milliseconds from epoch
-
-                    ageDate.setUTCFullYear(1970);
-                    ageDate.setUTCMonth(1);
-                    return Math.abs(ageDate.getUTCDate())
-                },
-
-                _hours: function (from, to) {
-                    var ageDifMs = to - from;
-                    var ageDate = new Date(ageDifMs); // milliseconds from epoch
-
-                    ageDate.setUTCFullYear(1970);
-                    ageDate.setUTCMonth(1);
-                    ageDate.setUTCDate(1);
-                    return Math.abs(ageDate.getUTCHours())
-                },
-
-                _minutes: function (from, to) {
-                    var ageDifMs = to - from;
-                    var ageDate = new Date(ageDifMs); // milliseconds from epoch
-
-                    ageDate.setUTCFullYear(1970);
-                    ageDate.setUTCMonth(1);
-                    ageDate.setUTCDate(1);
-                    ageDate.setUTCHours(1);
-                    return Math.abs(ageDate.getUTCMinutes())
-                },
-
-                _seconds: function (from, to) {
-                    var ageDifMs = to - from;
-                    var ageDate = new Date(ageDifMs); // milliseconds from epoch
-
-                    ageDate.setUTCFullYear(1970);
-                    ageDate.setUTCMonth(1);
-                    ageDate.setUTCDate(1);
-                    ageDate.setUTCHours(1);
-                    ageDate.setUTCMinutes(1);
-                    return Math.abs(ageDate.getUTCSeconds())
-                },
-
-                _totalDays: function (from, to) {
-                    var ageDifMs = to - from;
-                    return Math.floor(Math.abs(ageDifMs / 1000 / 60 / 60 / 24));
-                },
-
-                _truncateTime: function (dateIn) {
-                    var dateOut = new Date(dateIn.getTime());
-                    dateOut.setHours(0, 0, 0, 0);
-                    return dateOut;
-                }
             };
 
             var birthdayHandler = {
                 _unixBirthday: 1466891160, //Dessie
                 //_unixBirthday: 523843200, //Huining
 
-                _birthday: function () { return new Date(this._unixBirthday * 1000) },
+                _birthday: function () { return moment.unix(this._unixBirthday) },
 
                 _updateUi: function (from, to) {
-                    var fullAge = this._getFullAge(from, to);
+                    var fullAge = dateFormat.totalTime(from, to);
                     var totalMonths = dateFormat.totalMonths(from, to);
                     var totalDays = dateFormat.totalDays(from, to);
                     
@@ -312,54 +252,10 @@
                     $("#days").innerText = ", or " + totalDays + " old";
                     
                 },
-
-                _getFullAge: function (from, to) {
-                    //Get all units
-                    var items = [
-                        dateFormat.years(from, to),
-                        dateFormat.months(from, to),
-                        dateFormat.days(from, to),
-                        dateFormat.hours(from, to),
-                        dateFormat.minutes(from, to),
-                        dateFormat.seconds(from, to),
-                    ];
-
-                    //Remove empty units
-                    var i = 0;
-                    while (items.length > 0 && i < items.length) {
-
-                        if (items[i].length == 0) {
-                            items.splice(i, 1);
-                        } else {
-                            i++;
-                        }
-                    }
-
-                    //build string
-                    var strTotal = "";
-                    if (items.length > 0) {
-                        var last = undefined;
-                        if (items.length > 1) {
-                            last = items[items.length - 1];
-                            items.splice(items.length - 1, 1);
-                        }
-                        strTotal = items.join(", ");
-                        if (last) {
-                            strTotal += " and " + last;
-                        }
-                    }
-
-                    return strTotal;
-                },
-
+                
                 //Main function
                 update: function () {
-                    var now = new Date();
-
-                    //Debug
-                    var msPerMinute = 60000;
-                    now = new Date(now - 4 * msPerMinute);
-
+                    var now = moment();
                     this._updateUi(this._birthday(), now);
                 },
             };
@@ -370,6 +266,13 @@
                         return undefined;
                     var datStr = this._replaceAt(this._replaceAt(this._replaceAt((exifDate), 4, "-"), 7, "-"), 10, "T");
                     return new Date(datStr);
+
+                },
+                getMoment: function (exifDate) {
+                    if (!exifDate)
+                        return undefined;
+                    var datStr = this._replaceAt(this._replaceAt(this._replaceAt((exifDate), 4, "-"), 7, "-"), 10, "T");
+                    return moment(datStr);
 
                 },
                 //String helper methods
@@ -389,7 +292,7 @@
 
 
                     var span = document.createElement("span");
-                    var date = exifHelper.getDate(item.imageMediaMetadata.date);
+                    var date = exifHelper.getMoment(item.imageMediaMetadata.date);
                     var text = dateFormat.readableTimespamp(date);
                     span.innerText = text;
 
@@ -463,6 +366,23 @@
             setInterval(function () { birthdayHandler.update() }, 1000);
 
             imageFetcher.fetchImages();
+
+            //Allow changing birthday for debugging reasons
+            if ($.qs()["debug"] === "1") {
+                document.addEventListener('DOMContentLoaded', function () {
+                    $('input[id="debugger"]').onchange = changeEventHandler;
+                    $('input[id="debugger"]').style.display = "block";
+                }, false);
+
+                function changeEventHandler(event) {
+                    // You can use “this” to refer to the selected element.
+                    var date = new Date(event.target.value);
+                    if (date) {
+                        birthdayHandler._unixBirthday = Math.floor(date.getTime() / 1000);
+                        console.log("Birthday updated: " + date.toISOString().slice(0, 10));
+                    }
+                }
+            }
 
         })();
 
