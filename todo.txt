@@ -1,0 +1,12 @@
+Todo.
+
+[ ] Fin font
+[ ] Lazy load bilder på scroll
+[ ] Lös rotation på desktop
+[ ] Scrolleffekt på desktop
+
+
+[x] Datum mer än en vecka.
+[x] Höjd bilder innan laddning.    
+
+ 

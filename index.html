@@ -1,26 +1,40 @@
- <!DOCTYPE html> 
+<!DOCTYPE html> 
 <html>
     <head>
     <title>Desirée</title>
 
     <style>
-        body,html {
-            margin:0;
-            padding:0;
-            font-size:2vw;
+        body, html {
+            margin: 0;
+            padding: 0;
+            font-size:16px;
         }
         body {
-            background:#333;
-            color:#fff;
-            font-family: "Segoe Ui", Helvetica, Arial, sans-serif;
+            background: #333;
+            color: #fff;
+            /*font-family: "Segoe Ui", Helvetica, Arial, sans-serif;*/
+            font-family: "Lucida Sans Unicode", "Lucida Grande", sans-serif;
         }
         h1, h2, h3, h4, h5 {
             color:#fff;
             font-weight: normal;
             text-align: center;
-            font-size:3vw;
         }
 
+        h1 {
+            font-size: 2em;
+            margin: 0.4em 0 0.2em 0;
+        }
+
+        h2 {
+            font-size: 1.2em;
+            margin: 0.2em 0;
+        }
+
+        h3 {
+            font-size: 1em;
+            margin: 0.2em 0;
+        }
         
         #images {
             width:100%;
@@ -35,7 +49,14 @@
             width: 100%;
             margin: 0;
             image-orientation: from-image;
+            display:block;
         }
+            #images div span {
+                margin-left: 1vw;
+                text-transform: uppercase;
+                font-size: 0.8em;
+            }
+
 
 
         img.rot-1 {
@@ -53,7 +74,6 @@
 
     </style>
 
-    <!-- <scipt src="moment.min.js"></scipt> -->
     
 
     
@@ -63,7 +83,7 @@
     <div class="birthday">
         <h1>Desirée is</h1>
         <h2 id="fullAge"></h2>
-        <h3 id="months"></h3>
+        <h3><span id="months"></span><span id="days"></span></h3>
         <h3 id="days"></h3>
     </div>
 
@@ -147,10 +167,13 @@
                         }
                         else if (diffMs > 1000 * 60 * 60 * 24 * 7) { // more than a week 
 
-                            var tzoffset = (new Date()).getTimezoneOffset() * 60000; //offset in milliseconds
-                            var localISOTime = (new Date(from - tzoffset)).toISOString().slice(0, 10);
+                            var date = from.getDate();
+                            var month = from.toLocaleString("en-us", { month: "long" });
+                            var year = from.getFullYear();
 
-                            strReturn += localISOTime;
+                            strReturn += date + " " + month;
+                            if (new Date().getFullYear() != year)
+                                strReturn += " " + year;
                         }
                         else {
                             if (diffMs < 1000 * 60) { //less than minute 
@@ -277,8 +300,8 @@
                     
                     //Update UI
                     $("#fullAge").innerText = fullAge + " old"
-                    $("#months").innerText = "Total of " + totalMonths + " old";
-                    $("#days").innerText = "Total of " + totalDays + " old";
+                    $("#months").innerText = "Total of " + totalMonths;
+                    $("#days").innerText = ", or " + totalDays + " old";
                     
                 },
 
@@ -333,8 +356,7 @@
                 },
             };
 
-
-            exifHelper = {
+            var exifHelper = {
                 getDate: function (exifDate) {
                     if (!exifDate)
                         return undefined;
@@ -348,11 +370,16 @@
                 },
             }
 
-            imageCreator = {
+            var imageCreator = {
                 //DOM helper methods
                 createElement: function (item) {
                     var img = this._createImage("https://drive.google.com/uc?export=view&id=" + item.id, 'rot-' + item.imageMediaMetadata.rotation, '', '');
-                    
+                    var w = item.imageMediaMetadata.width;
+                    var h = item.imageMediaMetadata.height;
+                    var newImgHeight = Math.floor(h / w * 100);
+                    img.style.minHeight = newImgHeight + "vw";
+
+
                     var span = document.createElement("span");
                     var date = exifHelper.getDate(item.imageMediaMetadata.date);
                     var text = dateFormat.readableTimespamp(date);
@@ -374,10 +401,8 @@
                     return img;
                 },
             };
-
-
-
-            imageFetcher = {
+            
+            var imageFetcher = {
 
                 _url: "https://www.googleapis.com/drive/v2/files?q='0B-hMc6XvBKsXanc3Z1UzTUJYZkE'+in+parents+and+mimeType='image/jpeg'&orderBy=createdDate+desc&key=AIzaSyAM9XqhZGri07KQXdtioOGIsHzc2guR0V4",
 
