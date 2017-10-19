@@ -1,7 +1,7 @@
 Todo.
 
 [ ] Snabbare laddning bilder?
-[ ] Fin font
+
 [ ] Lazy load bilder på scroll
 [ ] Lös rotation på desktop
 [ ] Scrolleffekt på desktop
@@ -9,6 +9,7 @@ Todo.
 ------------------
 
 [X] Fixa total månader / dagar buggar
+[X] Fin font
 
 
 [x] Datum mer än en vecka.
