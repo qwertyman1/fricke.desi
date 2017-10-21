@@ -1,6 +1,6 @@
 Todo.
 
-[ ] Snabbare laddning bilder?
+[ ] Snabbare laddning bilder? - jag försökte idag.
 
 [ ] Lazy load bilder på scroll
 [ ] Lös rotation på desktop

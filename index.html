@@ -285,9 +285,17 @@
                 //DOM helper methods
                 createElement: function (item) {
                     var img = this._createImage("https://drive.google.com/uc?export=view&id=" + item.id, 'rot-' + item.imageMediaMetadata.rotation, '', '');
+
+                    //Set height relative to viewport 
                     var w = item.imageMediaMetadata.width;
                     var h = item.imageMediaMetadata.height;
-                    var newImgHeight = Math.floor(h / w * 100);
+                    let newImgHeight;
+                    if (item.imageMediaMetadata.rotation == 0 || item.imageMediaMetadata.rotation == 2) {
+                        newImgHeight = Math.floor(h / w * 100);
+                    }
+                    else {
+                        newImgHeight = Math.floor(w / h * 100);
+                    }
                     img.style.minHeight = newImgHeight + "vw";
 
 
@@ -302,7 +310,6 @@
                     return el;
                 },
 
-
                 _createImage: function (src, cssClass, alt, title) {
                     var img = document.createElement('img') || new Image();
                     img.src = src;
@@ -311,13 +318,32 @@
                     if (cssClass != null) img.className = cssClass;
                     return img;
                 },
+
+                _createEmptyImage: function (id, cssClass) {
+                    var img = document.createElement('img') || new Image();
+                    img.setAttribute("id", id);
+                    
+                    if (cssClass != null) img.className = cssClass;
+                    return img;
+                },
+
+                
             };
             
             var imageFetcher = {
 
+                _key: "AIzaSyAM9XqhZGri07KQXdtioOGIsHzc2guR0V4",
                 _url: "https://www.googleapis.com/drive/v2/files?q='0B-hMc6XvBKsXanc3Z1UzTUJYZkE'+in+parents+and+mimeType='image/jpeg'&orderBy=createdDate+desc&key=AIzaSyAM9XqhZGri07KQXdtioOGIsHzc2guR0V4",
 
                 _status: function (response) {
+                    if (response.status >= 200 && response.status < 300) {
+                        return Promise.resolve(response)
+                    } else {
+                        return Promise.reject(new Error(response.statusText))
+                    }
+                },
+
+                _retry: function (response) {
                     if (response.status >= 200 && response.status < 300) {
                         return Promise.resolve(response)
                     } else {
@@ -329,7 +355,7 @@
                     return response.json()
                 },
 
-                _handleResponse: function (data) {
+                _handleResponse: async function (data) {
                     //Sort by date taken desc
                     var items = data.items;
                     items.sort(imageFetcher._sortImageTakenDesc); //Don't use 'this' in callback
@@ -339,8 +365,16 @@
                         var item = items[i];
                         var element = imageCreator.createElement(item);
                         $("#images").appendChild(element);
+                        await imageFetcher._sleep(15); //Fetch sequentially. 
                     }
                 },
+
+
+                _sleep: function (ms) {
+                    return new Promise(resolve => setTimeout(resolve, ms));
+                },
+
+                
 
                 _sortImageTakenDesc: function (a, b) {
                     var datA = exifHelper.getDate(a.imageMediaMetadata.date) || new Date("1990-01-01 00:00:00");
