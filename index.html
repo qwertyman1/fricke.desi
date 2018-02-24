@@ -5,8 +5,6 @@
 
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
-    <link href="https://fonts.googleapis.com/css?family=Cormorant|Work+Sans" rel="stylesheet">
-
     <style>
         body, html {
             margin: 0;
@@ -43,43 +41,6 @@
 
         div.birthday {
             width: 100%;
-        } 
-        #images {
-            width: 100%;
-            margin-top:4vw;
-        }
-
-        #images div {
-            margin: 0 0 4vw 0;
-            width: 100%;
-        }
-
-        #images div img {
-            width: 100%;
-            margin: 0;
-            image-orientation: from-image;
-            display:block;
-        }
-        #images div span {
-            margin: 1vw 1vw 2vw 0;
-            text-transform: uppercase;
-            display:block;
-            /*font-family: 'Cormorant', serif;*/
-        }
-
-
-
-        img.rot-1 {
-            /*-webkit-transform: rotate(90deg);
-            -moz-transform: rotate(90deg);
-            -o-transform: rotate(90deg);
-            -ms-transform: rotate(90deg);
-            
-            transform-origin: center center;
-            position: relative;
-            transform: rotate(90deg);
-            height: calc(100vw-10px);
-            image-orientation: 90deg;*/
         }
 
     </style>
@@ -96,8 +57,6 @@
         <h3><span id="months"></span><span id="days"></span></h3>
         <h3 id="days"></h3>
     </div>
-
-    <div id="images"></div>
 
 
     <script>
@@ -259,147 +218,10 @@
                     this._updateUi(this._birthday(), now);
                 },
             };
-
-            var exifHelper = {
-                getDate: function (exifDate) {
-                    if (!exifDate)
-                        return undefined;
-                    var datStr = this._replaceAt(this._replaceAt(this._replaceAt((exifDate), 4, "-"), 7, "-"), 10, "T");
-                    return new Date(datStr);
-
-                },
-                getMoment: function (exifDate) {
-                    if (!exifDate)
-                        return undefined;
-                    var datStr = this._replaceAt(this._replaceAt(this._replaceAt((exifDate), 4, "-"), 7, "-"), 10, "T");
-                    return moment(datStr);
-
-                },
-                //String helper methods
-                _replaceAt: function (str, index, replacement) {
-                    return str.substr(0, index) + replacement + str.substr(index + replacement.length);
-                },
-            }
-
-            var imageCreator = {
-                //DOM helper methods
-                createElement: function (item) {
-                    var img = this._createImage("https://drive.google.com/uc?export=view&id=" + item.id, 'rot-' + item.imageMediaMetadata.rotation, '', '');
-
-                    //Set height relative to viewport 
-                    var w = item.imageMediaMetadata.width;
-                    var h = item.imageMediaMetadata.height;
-                    let newImgHeight;
-                    if (item.imageMediaMetadata.rotation == 0 || item.imageMediaMetadata.rotation == 2) {
-                        newImgHeight = Math.floor(h / w * 100);
-                    }
-                    else {
-                        newImgHeight = Math.floor(w / h * 100);
-                    }
-                    img.style.minHeight = newImgHeight + "vw";
-
-
-                    var span = document.createElement("span");
-                    var date = exifHelper.getMoment(item.imageMediaMetadata.date);
-                    var text = dateFormat.readableTimespamp(date);
-                    span.innerText = text;
-
-                    var el = document.createElement("div");
-                    el.appendChild(img);
-                    el.appendChild(span);
-                    return el;
-                },
-
-                _createImage: function (src, cssClass, alt, title) {
-                    var img = document.createElement('img') || new Image();
-                    img.src = src;
-                    if (alt != null) img.alt = alt;
-                    if (title != null) img.title = title;
-                    if (cssClass != null) img.className = cssClass;
-                    return img;
-                },
-
-                _createEmptyImage: function (id, cssClass) {
-                    var img = document.createElement('img') || new Image();
-                    img.setAttribute("id", id);
-                    
-                    if (cssClass != null) img.className = cssClass;
-                    return img;
-                },
-
-                
-            };
             
-            var imageFetcher = {
-
-                _key: "AIzaSyAM9XqhZGri07KQXdtioOGIsHzc2guR0V4",
-                _url: "https://www.googleapis.com/drive/v2/files?q='0B-hMc6XvBKsXanc3Z1UzTUJYZkE'+in+parents+and+mimeType='image/jpeg'&orderBy=createdDate+desc&key=AIzaSyAM9XqhZGri07KQXdtioOGIsHzc2guR0V4",
-
-                _status: function (response) {
-                    if (response.status >= 200 && response.status < 300) {
-                        return Promise.resolve(response)
-                    } else {
-                        return Promise.reject(new Error(response.statusText))
-                    }
-                },
-
-                _retry: function (response) {
-                    if (response.status >= 200 && response.status < 300) {
-                        return Promise.resolve(response)
-                    } else {
-                        return Promise.reject(new Error(response.statusText))
-                    }
-                },
-
-                _json: function (response) {
-                    return response.json()
-                },
-
-                _handleResponse: async function (data) {
-                    //Sort by date taken desc
-                    var items = data.items;
-                    items.sort(imageFetcher._sortImageTakenDesc); //Don't use 'this' in callback
-
-                    //Add images for each item
-                    for (var i in items) {
-                        var item = items[i];
-                        var element = imageCreator.createElement(item);
-                        $("#images").appendChild(element);
-                        await imageFetcher._sleep(15); //Fetch sequentially. 
-                    }
-                },
-
-
-                _sleep: function (ms) {
-                    return new Promise(resolve => setTimeout(resolve, ms));
-                },
-
-                
-
-                _sortImageTakenDesc: function (a, b) {
-                    var datA = exifHelper.getDate(a.imageMediaMetadata.date) || new Date("1990-01-01 00:00:00");
-                    var datB = exifHelper.getDate(b.imageMediaMetadata.date) || new Date("1990-01-01 00:00:00");
-                    return datB.getTime() - datA.getTime();
-                },
-
-
-                //Fetch helper methods
-                fetchImages: function () {
-                    fetch(this._url, { mode: 'cors' })
-                        .then(this._status)
-                        .then(this._json)
-                        .then(this._handleResponse)
-                        .catch(function (err) {
-                            console.log('Fetch Error', err);
-                        });
-                },
-
-            };
-
             birthdayHandler.update();
             setInterval(function () { birthdayHandler.update() }, 1000);
-
-            imageFetcher.fetchImages();
+            
 
             //Allow changing birthday for debugging reasons
             if ($.qs()["debug"] === "1") {
@@ -417,7 +239,7 @@
                     }
                 }
             }
-
+         
         })();
 
     </script>
