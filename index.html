@@ -1,8 +1,9 @@
 <!DOCTYPE html> 
 <html>
 <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Desirée</title>
-
+    
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.19.1/moment.min.js"></script>
     <style>
@@ -10,7 +11,7 @@
             margin: 0;
             padding: 0;
             font-size: 14px;
-            font-size: 2vw;
+            font-size: 3.5vw;
         }
         body {
             background: #0e0e0e;
@@ -101,13 +102,13 @@
 
 
                     //Get all units
-                    var units = [
-                        { unit: 'years', strSingle: ' year', strMultiple: ' years' },
-                        { unit: 'months', strSingle: ' month', strMultiple: ' months' },
-                        { unit: 'days', strSingle: ' day', strMultiple: ' days' },
-                        { unit: 'hours', strSingle: ' hour', strMultiple: ' hours' },
-                        { unit: 'minutes', strSingle: ' minute', strMultiple: ' minutes' },
-                        { unit: 'seconds', strSingle: ' second', strMultiple: ' seconds' },
+                    var units = [ //\xa0 is a non-breaking space
+                        { unit: 'years', strSingle: '\xa0year', strMultiple: '\xa0years' },
+                        { unit: 'months', strSingle: '\xa0month', strMultiple: '\xa0months' },
+                        { unit: 'days', strSingle: '\xa0day', strMultiple: '\xa0days' },
+                        { unit: 'hours', strSingle: '\xa0hour', strMultiple: '\xa0hours' },
+                        { unit: 'minutes', strSingle: '\xa0minute', strMultiple: '\xa0minutes' },
+                        { unit: 'seconds', strSingle: '\xa0second', strMultiple: '\xa0seconds' },
                     ];
                     
                     for (var i in units) {
@@ -141,11 +142,11 @@
                 totalMonths: function (from, to) {
 
                     var months = to.diff(from, 'months');
-                    return this._formatNumber(months, " month", " months");
+                    return this._formatNumber(months, "\xa0month", "\xa0months");
                 },
                 totalDays: function (from, to) {
                     var days = to.diff(from, 'days');
-                    return this._formatNumber(days, " day", " days");
+                    return this._formatNumber(days, "\xa0day", "\xa0days");
                 },
                 
                 readableTimespamp: function (from, now) {
